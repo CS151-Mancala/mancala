@@ -1,21 +1,14 @@
-public class Pit {
-    private final String player; // can be "A" or "B"
-    private int numStones;
+public class Pit extends Mancala {
+    private final int id;
 
-    public Pit(String player, int numStones) {
-        this.player = player;
-        this.numStones = numStones;
+    public Pit(String player, int id, int numStones) {
+        super(player, numStones);
+        this.id = id;
     }
 
-    public String getPlayer() {
-        return player;
-    }
+    public int getID() { return id; }
 
-    public int getNumStones() {
-        return numStones;
-    }
-
-    public void setNumStones(int numStones) {
-        this.numStones = numStones;
+    public String toString() {
+        return getPlayer() + getID() + ": " + getNumStones();
     }
 }

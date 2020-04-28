@@ -14,5 +14,7 @@ public class MancalaTest {
         DataModel dataModel = new DataModel(numStones);
         MancalaFrame mancalaFrame = new MancalaFrame(dataModel);
         dataModel.attach(mancalaFrame);
+
+        dataModel.updateBoard("B5");
     }
 }
