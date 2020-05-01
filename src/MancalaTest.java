@@ -1,4 +1,8 @@
+import java.awt.FlowLayout;
 import java.util.Scanner;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 
 /**
  * This class is used to test the Mancala program and its features.
@@ -14,7 +18,5 @@ public class MancalaTest {
         DataModel dataModel = new DataModel(numStones);
         MancalaFrame mancalaFrame = new MancalaFrame(dataModel);
         dataModel.attach(mancalaFrame);
-
-        dataModel.updateBoard("B5");
     }
 }

@@ -2,38 +2,110 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class MancalaPanel extends JPanel implements ChangeListener {
-    private final GameBoard gameBoard;
+    private static final int NUM_PLAYERS = 2; // number of players
+    private static final int NUM_PITS = 6; // number of pits per player
+
+    private final DataModel dataModel;
+    private JPanel gameBoard;
+    private final JPanel[][] pitPanels = new JPanel[NUM_PLAYERS][NUM_PITS];
+
+    private final JPanel mancalaAPanel = new JPanel(new BorderLayout());
+    private final JPanel mancalaBPanel = new JPanel(new BorderLayout());
+
+    private final JLabel mancalaALabel = new JLabel();
+    private final JLabel mancalaBLabel = new JLabel();
+
+    private final JLabel turnLabel = new JLabel();
 
     public MancalaPanel(DataModel dataModel) {
-        gameBoard = new GameBoard(dataModel);
+        this.dataModel = dataModel;
+        dataModel.attach(this);
+
+        setLayout(new BorderLayout());
+
+        // add a label to indicate whose turn it is
+        turnLabel.setText("Current Turn: " + dataModel.getTurn());
+        turnLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        add(turnLabel, BorderLayout.NORTH);
+
+        // create the game board with pits and mancalas for each player
+        gameBoard = createGameBoard();
+        updateBoard();
+        add(gameBoard, BorderLayout.CENTER);
     }
 
-    /**
-     * Set the size of the window to the size of the board
-     * @return the size of the Mancala board
-     */
-    @Override
-    public Dimension getPreferredSize() {
-        return gameBoard.getSize();
+    private JPanel createGameBoard() {
+        gameBoard = new JPanel(new BorderLayout());
+        JPanel pitsGrid = new JPanel(new GridLayout(NUM_PLAYERS, NUM_PITS));
+        // create pits for each player
+        for(int i = 0; i < NUM_PLAYERS; i++) {
+            for(int j = 0; j < NUM_PITS; j++) {
+                pitPanels[i][j] = new JPanel(new BorderLayout());
+                pitsGrid.add(pitPanels[i][j]);
+            }
+        }
+        gameBoard.add(pitsGrid, BorderLayout.CENTER);
+
+        // create mancalas for players A and B
+        add(mancalaAPanel, BorderLayout.EAST);
+        add(mancalaBPanel, BorderLayout.WEST);
+        gameBoard.add(mancalaAPanel, BorderLayout.EAST);
+        gameBoard.add(mancalaBPanel, BorderLayout.WEST);
+
+        return gameBoard;
     }
 
-    /**
-     * Draw the board and stones on the screen
-     * @param g frame Graphics object
-     */
-    @Override
-    public void paintComponent(Graphics g) {
-        Graphics2D g2 = (Graphics2D) g;
-        super.paintComponent(g2);
+    private void updateBoard() {
+        PitComponent[][] pits = dataModel.getPits();
 
-        gameBoard.drawGameBoard(g2);
-        gameBoard.drawStones(g2);
+        // update number of stones in each pit
+        for(int i = 0; i < NUM_PITS; i++) {
+            // update player A's pits
+            PitComponent aPit = pits[0][i];
+            aPit.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    dataModel.update((PitComponent) e.getSource());
+                }
+            });
+            pitPanels[1][i].add(aPit, BorderLayout.NORTH);
+            JLabel aLabel = new JLabel(aPit.getPlayer() + aPit.getID());
+            aLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            pitPanels[1][i].add(aLabel, BorderLayout.SOUTH);
+
+            // update player B's pits
+            PitComponent bPit = pits[1][i];
+            bPit.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    dataModel.update((PitComponent) e.getSource());
+                }
+            });
+            pitPanels[0][NUM_PITS-i-1].add(bPit, BorderLayout.SOUTH);
+            JLabel bLabel = new JLabel(bPit.getPlayer() + bPit.getID());
+            bLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            pitPanels[0][NUM_PITS-i-1].add(bLabel, BorderLayout.NORTH);
+        }
+
+        // update mancalas
+        mancalaAPanel.add(dataModel.getMancalaA(), BorderLayout.SOUTH);
+        mancalaALabel.setText("Mancala A");
+        mancalaALabel.setHorizontalAlignment(SwingConstants.CENTER);
+        mancalaAPanel.add(mancalaALabel, BorderLayout.NORTH);
+
+        mancalaBPanel.add(dataModel.getMancalaB(), BorderLayout.SOUTH);
+        mancalaBLabel.setText("Mancala B");
+        mancalaBLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        mancalaBPanel.add(mancalaBLabel, BorderLayout.NORTH);
     }
 
     @Override
     public void stateChanged(ChangeEvent e) {
-        repaint();
+        turnLabel.setText("Current Turn: " + dataModel.getTurn());
+        revalidate();
     }
 }

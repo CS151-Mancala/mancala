@@ -4,7 +4,6 @@ import javax.swing.event.ChangeListener;
 
 public class MancalaFrame extends JFrame implements ChangeListener {
     public MancalaFrame(DataModel dataModel) {
-
         setTitle("Mancala");
         add(new MancalaPanel(dataModel));
 
@@ -15,6 +14,6 @@ public class MancalaFrame extends JFrame implements ChangeListener {
 
     @Override
     public void stateChanged(ChangeEvent e) {
-        repaint();
+        revalidate();
     }
 }

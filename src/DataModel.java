@@ -1,3 +1,4 @@
+import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.util.ArrayList;
 
@@ -5,11 +6,13 @@ import java.util.ArrayList;
  * Data model for the Mancala program
  */
 public class DataModel {
-    private static final int NUM_PITS = 6; // number of Pits for one player
+    private static final int NUM_PLAYERS = 2; // number of players
+    private static final int NUM_PITS = 6; // number of pits per player
 
-    private final ArrayList<Pit> pits;
-    private final Mancala aMancala; // mancala for player A
-    private final Mancala bMancala; // mancala for player B
+    private final PitComponent[][] pits;
+    private final MancalaComponent mancalaA; // mancala for player A
+    private final MancalaComponent mancalaB; // mancala for player B
+    private String turn; // tracks which player's turn it is (A or B)
 
     private final ArrayList<ChangeListener> listeners;
 
@@ -18,22 +21,31 @@ public class DataModel {
      * @param numStones starting number of stones in each Pit
      */
     public DataModel(int numStones) {
-        pits = new ArrayList<>();
-        for(int i = 0; i < NUM_PITS * 2; i++) {
-            // The first (NUM_PITS / 2) pits are for player A
-            if(i < (NUM_PITS)) {
-                pits.add(new Pit("A", (i % 6) + 1, numStones));
-            } else {
-                pits.add(new Pit("B", (i % 6) + 1, numStones));
-            }
-        }
-        aMancala = new Mancala("A", 0);
-        bMancala = new Mancala("B", 0);
         this.listeners = new ArrayList<>();
+        pits = new PitComponent[NUM_PLAYERS][NUM_PITS];
+        mancalaA = new MancalaComponent("A", 0, this);
+        mancalaB = new MancalaComponent("B", 0, this);
+        for(int i = 0; i < NUM_PITS; i++) {
+            pits[0][i] = new PitComponent("A", (i % NUM_PITS) + 1, numStones, this);
+            pits[1][i] = new PitComponent("B", (i % NUM_PITS) + 1, numStones, this);
+        }
+        turn = "A";
     }
 
-    public ArrayList<Pit> getPits() {
+    public PitComponent[][] getPits() {
         return pits;
+    }
+
+    public MancalaComponent getMancalaA() {
+        return mancalaA;
+    }
+
+    public MancalaComponent getMancalaB() {
+        return mancalaB;
+    }
+
+    public String getTurn() {
+        return turn;
     }
 
     /**
@@ -44,31 +56,57 @@ public class DataModel {
         listeners.add(listener);
     }
 
-    public void updateBoard(String pitString) {
+    public void update(PitComponent selectedPit) {
+        // validate turn order
+        if (!turn.equals(selectedPit.getPlayer())) {
+            return;
+        }
         int counter = 0;
-        // Find the Pit specified by pitString
-        for(int i = 0; i < NUM_PITS * 2; i++) {
-            Pit pit = pits.get(i);
-            if((pit.getPlayer() + pit.getID()).equals(pitString)) {
-                counter = pit.getNumStones();
-                pit.setNumStones(0);
-            } else if(counter > 0) {
-                pit.setNumStones(pit.getNumStones() + 1);
-                counter--;
-                System.out.println(pit);
-                // Check if a Mancala is the next hole
-                if((i + 1) % 6 == 0) {
-                    if(pit.getPlayer().equals("A")) {
-                        aMancala.setNumStones(pit.getNumStones() + 1);
-                        System.out.println(aMancala);
+        // find the pit that was selected and update the other pits accordingly
+        boolean found = false;
+        boolean lastStoneInMancala = false;
+        for (int i = 0; i < NUM_PLAYERS; i++) {
+            for (int j = 0; j < NUM_PITS; j++) {
+                PitComponent pit = pits[i][j];
+                if (pit == selectedPit && !found) {
+                    counter = pit.getNumStones();
+                    pit.setNumStones(0);
+                    found = true;
+                } else if (counter > 0) {
+                    pit.setNumStones(pit.getNumStones() + 1);
+                    counter--;
+                } else if (found) {
+                    break;
+                }
+                // check if a mancala is the next hole
+                if (j == NUM_PITS - 1 && counter > 0) {
+                    if (pit.getPlayer().equals("A")) {
+                        mancalaA.setNumStones(mancalaA.getNumStones() + 1);
                     } else {
-                        bMancala.setNumStones(pit.getNumStones() + 1);
-                        i = -1; // Reset index if Player B's Mancala is reached
-                        System.out.println(bMancala);
+                        mancalaB.setNumStones(mancalaB.getNumStones() + 1);
+                        // reset indices if player B's mancala is reached
+                        i = 0;
+                        j = -1;
                     }
                     counter--;
+                    // check if last stone was dropped in a mancala
+                    if(counter == 0) {
+                        lastStoneInMancala = true;
+                    }
                 }
             }
+        }
+
+        // switch turns
+        if(turn.equals("A") && !lastStoneInMancala) {
+            turn = "B";
+        } else if(!lastStoneInMancala) {
+            turn = "A";
+        }
+
+        // notify Changelisteners
+        for (ChangeListener listener : listeners) {
+            listener.stateChanged(new ChangeEvent(this));
         }
     }
 }
