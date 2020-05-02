@@ -13,6 +13,7 @@ public class DataModel {
     private final MancalaComponent mancalaA; // mancala for player A
     private final MancalaComponent mancalaB; // mancala for player B
     private String turn; // tracks which player's turn it is (A or B)
+    private String previousTurn;
 
     private final ArrayList<ChangeListener> listeners;
 
@@ -30,20 +31,37 @@ public class DataModel {
             pits[1][i] = new PitComponent("B", (i % NUM_PITS) + 1, numStones, this);
         }
         turn = "A";
+        previousTurn = turn;
     }
 
+    /**
+     * Retrieves the 2D array of pits
+     * @return the 2D array of PitComponent objects
+     */
     public PitComponent[][] getPits() {
         return pits;
     }
 
+    /**
+     * Retrieves the mancala for player A
+     * @return MancalaComponent for player A
+     */
     public MancalaComponent getMancalaA() {
         return mancalaA;
     }
 
+    /**
+     * Retrieves the mancala for player B
+     * @return MancalaComponent for player B
+     */
     public MancalaComponent getMancalaB() {
         return mancalaB;
     }
 
+    /**
+     * Retrieves the current turn
+     * @return String representing which player's turn it is
+     */
     public String getTurn() {
         return turn;
     }
@@ -56,14 +74,29 @@ public class DataModel {
         listeners.add(listener);
     }
 
+    /**
+     * Updates the game whenever a player makes a turn
+     * @param selectedPit the pit the player selected
+     */
     public void update(PitComponent selectedPit) {
         // validate turn order
         if (!turn.equals(selectedPit.getPlayer())) {
             return;
         }
+        // iterate through the 2D list and keep track of current number of stones and turn
+        for(int i = 0; i < NUM_PLAYERS; i++) {
+            for(int j = 0; j < NUM_PITS; j++) {
+                pits[i][j].setPreviousNumStones(pits[i][j].getNumStones());
+            }
+        }
+        mancalaA.setPreviousNumStones(mancalaA.getNumStones());
+        mancalaB.setPreviousNumStones(mancalaB.getNumStones());
+        previousTurn = turn;
+
         int counter = 0;
         // find the pit that was selected and update the other pits accordingly
         boolean found = false;
+        // tracks whether a player's last stone was dropped in a mancala
         boolean lastStoneInMancala = false;
         for (int i = 0; i < NUM_PLAYERS; i++) {
             for (int j = 0; j < NUM_PITS; j++) {
@@ -103,8 +136,32 @@ public class DataModel {
         } else if(!lastStoneInMancala) {
             turn = "A";
         }
+        notifyListeners();
+    }
 
-        // notify Changelisteners
+    /**
+     * Reverts to the previous turn
+     */
+    public void undoTurn() {
+        // Change all pits' number of stones to their previous numbers
+        for(int i = 0; i < NUM_PLAYERS; i++) {
+            for(int j = 0; j < NUM_PITS; j++) {
+                pits[i][j].revertStones();
+            }
+        }
+        mancalaA.revertStones();
+        mancalaB.revertStones();
+
+        // Change current turn back to the previous player
+        turn = previousTurn;
+
+        notifyListeners();
+    }
+
+    /**
+     * Notify each ChangeListener to change state
+     */
+    private void notifyListeners() {
         for (ChangeListener listener : listeners) {
             listener.stateChanged(new ChangeEvent(this));
         }
