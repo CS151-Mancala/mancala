@@ -1,5 +1,3 @@
-import javafx.scene.paint.Color;
-
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -14,6 +12,7 @@ public class MancalaFrame extends JFrame implements ChangeListener {
      * @param dataModel the DataModel object
      */
     public MancalaFrame(DataModel dataModel, BoardStyle style) {
+        dataModel.attach(this);
         setTitle("Mancala");
         add(new MancalaPanel(dataModel, style));
 

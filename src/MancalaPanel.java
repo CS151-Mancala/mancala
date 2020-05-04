@@ -40,17 +40,26 @@ public class MancalaPanel extends JPanel implements ChangeListener {
         // add a label to indicate whose turn it is
         turnLabel.setText("Current Turn: " + dataModel.getTurn());
         turnLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        add(turnLabel, BorderLayout.NORTH);
+        add(turnLabel, BorderLayout.SOUTH);
 
         // create the game board with pits and mancalas for each player
         gameBoard = createGameBoard();
         addComponents();
         add(gameBoard, BorderLayout.CENTER);
 
+        // add panel at bottom to store buttons
+        JPanel buttonsPanel = new JPanel(new BorderLayout());
+        add(buttonsPanel, BorderLayout.NORTH);
+
         // add button to revert to the previous turn
         JButton undoButton = new JButton("Undo Turn");
         undoButton.addActionListener(e -> dataModel.undoTurn());
-        add(undoButton, BorderLayout.SOUTH);
+        buttonsPanel.add(undoButton, BorderLayout.WEST);
+
+        // add button to quit program
+        JButton quitButton = new JButton("Quit");
+        quitButton.addActionListener(e -> System.exit(0));
+        buttonsPanel.add(quitButton, BorderLayout.EAST);
     }
 
     /**

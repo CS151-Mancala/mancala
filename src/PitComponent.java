@@ -10,9 +10,9 @@ public class PitComponent extends MancalaComponent implements ChangeListener {
     private static final int PIT_WIDTH = 100;
     private static final int PIT_HEIGHT = 100;
 
-    private static final int STONE_WIDTH = 10;
-    private static final int STONE_HEIGHT = 10;
-    private static final int STONE_MARGIN = 3; // margin between each stone
+    private static final int STONE_WIDTH = 6;
+    private static final int STONE_HEIGHT = 6;
+    private static final int STONE_MARGIN = 2; // margin between each stone
 
     private final int id;
     private final Dimension dimension;

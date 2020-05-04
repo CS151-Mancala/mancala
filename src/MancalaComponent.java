@@ -11,9 +11,9 @@ public class MancalaComponent extends JComponent implements ChangeListener {
     private static final int MANCALA_WIDTH = 100;
     private static final int MANCALA_HEIGHT = 200;
 
-    private static final int STONE_WIDTH = 10;
-    private static final int STONE_HEIGHT = 10;
-    private static final int STONE_MARGIN = 3; // margin between each stone
+    private static final int STONE_WIDTH = 6;
+    private static final int STONE_HEIGHT = 6;
+    private static final int STONE_MARGIN = 2; // margin between each stone
 
     private final String player;
     private int numStones;

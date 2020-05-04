@@ -1,3 +1,4 @@
+import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.util.ArrayList;
@@ -108,12 +109,24 @@ public class DataModel {
                 } else if (counter > 0) {
                     pit.setNumStones(pit.getNumStones() + 1);
                     counter--;
+                    // check if last stone was dropped in an empty pit on the player's side
+                    if(counter == 0 && pit.getNumStones() == 1 && turn.equals(pit.getPlayer())) {
+                        PitComponent otherPit = pits[i^1][NUM_PITS-j-1];
+                        int numStones = pit.getNumStones() + otherPit.getNumStones();
+                        pit.setNumStones(0);
+                        otherPit.setNumStones(0);
+                        if(turn.equals("A")) {
+                            mancalaA.setNumStones(mancalaA.getNumStones() + numStones);
+                        } else {
+                            mancalaB.setNumStones(mancalaA.getNumStones() + numStones);
+                        }
+                    }
                 } else if (found) {
                     break;
                 }
                 // check if a mancala is the next hole
-                if (j == NUM_PITS - 1 && counter > 0) {
-                    if (pit.getPlayer().equals("A")) {
+                if (j == NUM_PITS - 1 && counter > 0 && pit.getPlayer().equals(selectedPit.getPlayer())) {
+                    if(pit.getPlayer().equals("A")) {
                         mancalaA.setNumStones(mancalaA.getNumStones() + 1);
                     } else {
                         mancalaB.setNumStones(mancalaB.getNumStones() + 1);
@@ -130,6 +143,31 @@ public class DataModel {
             }
         }
 
+        // check for game end condition
+        boolean gameIsOver = false;
+        for (int i = 0; i < NUM_PLAYERS; i++) {
+            gameIsOver = true;
+            for (int j = 0; j < NUM_PITS; j++) {
+                if (pits[i][j].getNumStones() != 0) {
+                    gameIsOver = false;
+                    break;
+                }
+            }
+            if(gameIsOver) {
+                if(i == 0) {
+                    for(int j = 0; j < NUM_PITS; j++) {
+                        mancalaB.setNumStones(mancalaB.getNumStones() + pits[1][j].getNumStones());
+                        pits[1][j].setNumStones(0);
+                    }
+                } else {
+                    for(int j = 0; j < NUM_PITS; j++) {
+                        mancalaA.setNumStones(mancalaA.getNumStones() + pits[0][j].getNumStones());
+                        pits[0][j].setNumStones(0);
+                    }
+                }
+            }
+        }
+
         // switch turns
         if(turn.equals("A") && !lastStoneInMancala) {
             turn = "B";
@@ -137,6 +175,17 @@ public class DataModel {
             turn = "A";
         }
         notifyListeners();
+
+        // display victory screen if game is over
+        if(gameIsOver) {
+            if (mancalaA.getNumStones() > mancalaB.getNumStones()) {
+                JOptionPane.showMessageDialog(null, "Player A wins!");
+            } else if (mancalaA.getNumStones() < mancalaB.getNumStones()) {
+                JOptionPane.showMessageDialog(null, "Player B wins!");
+            } else {
+                JOptionPane.showMessageDialog(null, "Game is a tie!");
+            }
+        }
     }
 
     /**

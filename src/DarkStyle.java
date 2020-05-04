@@ -12,7 +12,7 @@ public class DarkStyle implements BoardStyle {
     @Override
     public void stylize(JComponent component) {
         component.setBackground(Color.BLACK);
-        component.setForeground(Color.WHITE);
+        component.setForeground(Color.LIGHT_GRAY);
     }
 
     /**
